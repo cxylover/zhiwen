@@ -20,8 +20,6 @@
 
 # 知光平台-知识获取与分享社区
 后端 & 前端开发（前端采用 AI 辅助开发）
-- **后端地址**：https://github.com/G-Pegasus/zhiguang_be
-- **前端地址**：https://github.com/G-Pegasus/zhiguang_fe
 - **项目概述**：知识社区 APP（后续考虑支持付费），支持发布知识、点赞/收藏、关注取关、首页 Feed 展示与对象存储直传，AI 生成摘要等等。项目各模块进行了充分详细的设计以满足高并发和高可用需求
 - **技术栈**：后端 Java 21 + Spring Boot + Spring Security + Spring AI + RAG + MyBatis + MySQL + Redis + Kafka + Caffeine + 阿里云 OSS + Canal + Elasticsearch ；前端 React + Vite
 - **项目细节与亮点**：
