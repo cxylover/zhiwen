@@ -1,0 +1,162 @@
+
+spring:
+  application:
+    name: zhiguang-auth
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.vectorstore.elasticsearch.autoconfigure.ElasticsearchVectorStoreAutoConfiguration
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${MYSQL_URL:jdbc:mysql://127.0.0.1:3306/zhiguang?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:}
+    hikari:
+      maximum-pool-size: 20             # 连接池最大连接数
+      minimum-idle: 5                   # 最小空闲连接
+      idle-timeout: 600000              # 10 分钟：空闲多久回收
+      max-lifetime: 1700000             # 约 28 分钟
+      keepalive-time: 300000            # 5 分钟发一次“保活”
+      connection-timeout: 30000             # 30 秒拿不到连接就报错
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
+      connect-timeout: 2s
+      lettuce:
+        pool:
+          max-active: 128
+          max-idle: 64
+          min-idle: 16
+          max-wait: 2s
+  kafka:
+    bootstrap-servers: localhost:9092
+    template:
+      default-topic: counter-events
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+      linger: 10ms
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 1
+    consumer:
+      group-id: counter-agg
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: latest
+      enable-auto-commit: false
+    listener:
+      type: single
+      ack-mode: manual
+  ai:
+    deepseek:
+      api-key: ${DEEPSEEK_API_KEY:}
+      base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+      chat:
+        options:
+          model: deepseek-chat
+          temperature: 0.8
+    openai:
+      base-url: ${OPENAI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode}
+      api-key: ${OPENAI_API_KEY:}
+      embedding:
+        options:
+          model: text-embedding-v4 # 向量模型
+          dimensions: 1536
+    vectorstore:
+      elasticsearch:
+        initialize-schema: true
+        index-name: zhiguang-ai-index
+        dimensions: 1536 # 一定要和上面的 dimensions 一致，不然会报错
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9201}
+    username: ${ELASTICSEARCH_USERNAME:}
+    password: ${ELASTICSEARCH_PASSWORD:}
+
+canal:
+  enabled: true
+  host: ${CANAL_HOST:localhost}
+  port: ${CANAL_PORT:11111}
+  destination: ${CANAL_DESTINATION:example}
+  username: ${CANAL_USERNAME:}
+  password: ${CANAL_PASSWORD:}
+  filter: ${CANAL_FILTER:zhiguang\.outbox}
+  batchSize: ${CANAL_BATCH_SIZE:1000}
+  intervalMs: ${CANAL_INTERVAL_MS:1000}
+
+counter:
+  rebuild:
+    enabled: false
+    lock:
+      ttl-ms: 5000
+      watchdog-ms: 30000
+    rate:
+      permits: 3
+      window-seconds: 10
+    backoff:
+      base-ms: 500
+      max-ms: 30000
+
+mybatis:
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+auth:
+  jwt:
+    issuer: zhiguang
+    key-id: zhiguang-key
+    private-key: ${JWT_PRIVATE_KEY:classpath:keys/private.pem}
+    public-key: ${JWT_PUBLIC_KEY:classpath:keys/public.pem}
+    access-token-ttl: PT2H
+    refresh-token-ttl: P7D
+  verification:
+    code-length: 6
+    ttl: PT5M
+    max-attempts: 5
+    send-interval: PT60S
+    daily-limit: 10
+  password:
+    bcrypt-strength: 12
+    min-length: 8
+
+logging:
+  level:
+    root: INFO
+    '[com.tongji]': DEBUG
+
+oss:
+  endpoint: ${OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+  access-key-id: ${OSS_ACCESS_KEY_ID:}
+  access-key-secret: ${OSS_ACCESS_KEY_SECRET:}
+  bucket: ${OSS_BUCKET:}
+  public-domain: ${OSS_PUBLIC_DOMAIN:}
+  folder: avatars
+
+cache:
+  l2:
+    public-cfg:
+      ttl-seconds: 15
+      max-size: 1000
+    mine-cfg:
+      ttl-seconds: 10
+      max-size: 1000
+  hotkey:
+    window-seconds: 60
+    segment-seconds: 10
+    level-low: 50
+    level-medium: 200
+    level-high: 500
+    extend-low-seconds: 20
+    extend-medium-seconds: 60
+    extend-high-seconds: 120
+
+feature:
+  rag:
+    enabled: ${FEATURE_RAG_ENABLED:true}
